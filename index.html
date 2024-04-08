@@ -1,0 +1,155 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+    <meta charset="UTF-8">
+    <title>Unlit Corkscrew and Pyramid Example</title>
+
+    <script src="glsim.js"></script>  <!-- load the OpenGL 1.1 simulation code -->
+
+    <script>
+
+        let rotateX = 15;   // rotations of cube about the axes
+        let rotateY = -15;
+        let rotateZ = 0;
+        let objectNumber = 1; // Variable to control which object to draw
+
+        // ------------------- functions for drawing the corkscrew -------------------
+
+        function segment(angle, color) {
+            glColor3f(color[0], color[1], color[2]);
+            glBegin(GL_LINE_STRIP);
+            for (var i = 0; i < 100; i++) {
+                var t = i * Math.PI / 50;
+                var x = Math.cos(angle + t) * (t * 0.05);
+                var y = Math.sin(angle + t) * (t * 0.05);
+                glVertex3f(x, y, t * 0.05);
+            }
+            glEnd();
+        }
+
+        function corkscrew() {
+
+            for (var i = 0; i < 20; i++) {
+                glPushMatrix();
+                glRotatef(i * 18, 0, 0, 1);
+                segment(0, [1, 0, 0]);
+                glPopMatrix();
+            }
+
+        }
+
+
+
+        function drawTriangle(p1, p2, p3, color) {
+            glColor3f(color[0], color[1], color[2]);
+            glBegin(GL_TRIANGLES);
+            glVertex3f(p1[0], p1[1], p1[2]);
+            glVertex3f(p2[0], p2[1], p2[2]);
+            glVertex3f(p3[0], p3[1], p3[2]);
+            glEnd();
+        }
+
+        function drawPyramid() {
+            let baseSize = 1;
+            let height = 1;
+            let colors = [[1, 0, 0], [0, 1, 0], [0, 0, 1], [1, 1, 0], [1, 0, 1], [0, 1, 1]]; // Colors for pyramid sides
+
+            for (let i = 0; i < 6; i++) {
+                glPushMatrix();
+                glRotatef(i * 60, 0, 1, 0);
+                drawTriangle([0, height, 0],
+                    [Math.cos(Math.PI / 3) * baseSize, 0, -Math.sin(Math.PI / 3) * baseSize],
+                    [-Math.cos(Math.PI / 3) * baseSize, 0, -Math.sin(Math.PI / 3) * baseSize],
+                    colors[i]);
+                glPopMatrix();
+            }
+        }
+
+        // ----------------------------------------------------------------------
+
+        function display() {  // Draws the image.
+
+            glClear( GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+
+            glLoadIdentity();
+            glRotatef(rotateZ,0,0,1);
+            glRotatef(rotateY,0,1,0);
+            glRotatef(rotateX,1,0,0);
+
+            if (objectNumber === 1) {
+                corkscrew();
+            } else if (objectNumber === 2) {
+                drawPyramid();
+            }
+
+        }
+
+        function initGL() {
+            glMatrixMode(GL_PROJECTION);
+            glOrtho(-1, 1, -1, 1, -1, 1);
+            glMatrixMode(GL_MODELVIEW);
+            glEnable(GL_DEPTH_TEST);
+            glClearColor(0, 0, 0, 1);
+        }
+
+        function doKeyDown(evt) {
+            let key = evt.keyCode;
+            if ( key == 37 ) // left
+                rotateY -= 15;
+            else if ( key == 39 ) // right
+                rotateY += 15;
+            else if ( key == 40) // down
+                rotateX += 15;
+            else if ( key == 38 ) // up
+                rotateX -= 15;
+            else if ( key == 33 ) // page up
+                rotateZ += 15;
+            else if ( key == 34 ) // page down
+                rotateZ -= 15;
+            else if ( key == 36 )  // home
+                rotateX = rotateY = rotateZ = 0;
+            else if ( key == 49 )  // 1 key
+                objectNumber = 1; // Set object to corkscrew
+            else if ( key == 50 )  // 2 key
+                objectNumber = 2; // Set object to pyramid
+            if (key >=34 && key <= 40 || key === 49 || key === 50) {
+                evt.preventDefault();
+            }
+            display();
+        }
+
+        function init() {  // Called by <body onload="init()">, when the page has loaded.
+            try {
+                glsimUse("glcanvas"); // OpenGL will draw to the canvas with id="glcanvas".
+            }
+            catch (e) {
+                document.getElementById("canvas-holder").innerHTML =
+                    "Sorry, an error occured:<br>" + e;
+                return;
+            }
+            document.onkeydown = doKeyDown;
+            initGL();
+            display();
+        }
+
+    </script>
+
+</head>
+
+<body onload="init()">
+
+<h3>A Simple Unlit Corkscrew and Pyramid in OpenGL 1.1</h3>
+
+<p>(Rotate using arrow keys, page up, page down, and home keys. Press 1 for corkscrew, 2 for pyramid.)</p>
+
+<noscript>
+    <p><b>Sorry, this page requires JavaScript!</b></p>
+</noscript>
+
+<div id="canvas-holder">
+    <canvas id="glcanvas" width="500" height="500"></canvas>
+</div>
+
+</body>
+</html>
